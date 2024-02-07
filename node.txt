@@ -1,0 +1,116 @@
+
+
+.                 Node.js  - Back end for bank server
+.             ------------------------------------------
+
+.              1. Create a server folder
+.              2. Create a package.json file : npm init
+.              3. Create entry point of server : index.js
+.              4. Install Express : npm i express
+.              5. import express inside index.js
+.              6. Create server app using express
+.              7. Set up port for server app
+.              8. To resolve the  
+.                    - Servar-app.http-method(path,call back function)
+.              9. Install cors ( cross origin resource sharing ) : npm i cors
+.                    - import corse in index.jd
+.                    - Use corse , define the origine to share the data with server
+.              10 - To parse json data  
+
+.                 Integration of Node.js server and MongoDB
+.               ---------------------------------------------
+
+.              1. Install mongoose : cmd - npm i mongoose
+.              2. Create a folder for a services then create a js file for defining db connection,db.js
+.                   - import mongoose in db.js
+.                   - using mpongoose define connection string 
+.                   - create model for the project
+.               
+.                   Authorization
+.                -------------------
+.              
+.              1. Json Web Token - npm i jsonwbtoken          
+.              2.Udsing jsonwebtoken 
+.                       - generate token for successful login : sign()
+.                       -verify token  -verify()
+.              3. Middleware
+.                       - application specific Middleware
+.                       - router specific Middleware
+
+
+
+
+ // deposit
+ const deposit =(acno,amt)=>{
+   //string change into number
+   let amount=Number(amt)
+   return db.User.findOne({
+      acno
+   }).then((result)=>{
+      if(result){
+         //acno is present db
+         result.balance+=amount
+         result.save()
+         return {
+            statusCode:200,
+            message:`${amount} Successfully Deposited....`
+         }
+      }
+      else{
+         return {
+            statusCode:404,
+            message:'Invalid Account'
+         }
+      }
+   })
+ }
+
+ //fundTansfer
+ const fundTransfer = (req,toAcno,pswd,amt)=>{
+   let amount = Number(amt)
+   let fromAcno = req.fromAcno
+  return db.User.findOne({
+      acno:fromAcno,
+      password:pswd
+   }).then((result)=>{
+      console.log(result);
+      if(result){
+         let fromAcnoBalance = result.balance
+         if(fromAcnoBalance>=amount){
+           result.balance = fromAcnoBalance-amount
+           // creadit account details
+           return db.User.findOne(
+            {
+            acno:fromAcno,
+            password:pswd
+         }
+         ).then((creaditdata)=>{
+            if(creaditdata){
+               creaditdata.balance+=amount
+               creaditdata.save();
+               result.save();
+            }
+            else{
+               return{
+                  statusCode:401,
+                  message:"Invalid Creadit Account"
+               }
+            }
+         })
+
+         }
+         else{
+           return{ 
+            statusCode:403  ,
+            message:"Insufficient Balance"
+           }
+         }
+      }
+      else{
+         return{
+            statusCode:401,
+            message:"Invalid Debit Account or Password"
+         }
+      }
+   })
+ }
